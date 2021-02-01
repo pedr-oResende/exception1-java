@@ -4,6 +4,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+import model.exceptions.DomainException;
+
 public class Reservation {
 	private Integer roomNumber;
 	private Date checkIn;
@@ -14,10 +16,13 @@ public class Reservation {
 	public Reservation() {
 	}
 
-	public Reservation(Integer roomNumber, Date checkin, Date checkout) {
+	public Reservation(Integer roomNumber, Date checkIn, Date checkOut) {
+		if (!checkOut.after(checkIn)) {
+			throw new DomainException("Check-out date must be after check-in date");
+		}
 		this.roomNumber = roomNumber;
-		this.checkIn = checkin;
-		this.checkOut = checkout;
+		this.checkIn = checkIn;
+		this.checkOut = checkOut;
 	}
 
 	public Integer getRoomNumber() {
@@ -41,30 +46,20 @@ public class Reservation {
 		return TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
 	}
 
-	public String updateDate(Date checkin, Date checkout) {
-		
-		Date now = new Date();
-		if (checkIn.before(now) || checkOut.before(now)) {
-			return "Error in reservation: Reservation dates for update must be future dates";
-		} if (!checkOut.after(checkIn)) {
-			return "Error in reservation: Check-out date must be after check-in date";
-
+	public void updateDate(Date checkIn, Date checkOut) {
+		if (checkIn.before(this.checkIn) || checkOut.before(this.checkOut)) {
+			throw new DomainException("Reservation dates for update must be future dates");
 		}
-		this.checkIn = checkin;
-		this.checkOut = checkout;
-		return null;
+		if (!checkOut.after(checkIn)) {
+			throw new DomainException("Check-out date must be after check-in date");
+		}
+		this.checkIn = checkIn;
+		this.checkOut = checkOut;
 	}
 
 	@Override
 	public String toString() {
-		return "Room "
-				+ roomNumber 
-				+ ", check-in: " 
-				+ sdf.format(checkIn) 
-				+ ", check-out: " 
-				+ sdf.format(checkOut)
-				+ ", " 
-				+ duration() 
-				+ " nights";
+		return "Room " + roomNumber + ", check-in: " + sdf.format(checkIn) + ", check-out: " + sdf.format(checkOut)
+				+ ", " + duration() + " nights";
 	}
 }
